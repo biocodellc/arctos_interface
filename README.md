@@ -16,6 +16,12 @@ v18.2.0
 $ npm -v
 8.9.0
 
+# git checkout main codebase
+# git checkout trait-viz submodule
+$ cd app
+$ git submodule add https://github.com/biocodellc/trait-viz.git
+$ git commit -am "add trait-viz submodule"
+
 npm install 
 ```
 
