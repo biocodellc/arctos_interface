@@ -1,0 +1,30 @@
+{
+  "name": "ppo-data-interface",
+  "version": "1.0.0",
+  "description": "A lightweight interface for visualizing plant traits",
+  "main": "gulpfile.js",
+  "dependencies": {
+    "gulp": "^5.0.0",
+    "http-server": "*"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server -a localhost -p 8000 -c-1 ./app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/futres/futres-data-interface.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/futres/futres-data-interface/issues"
+  },
+  "homepage": "https://github.com/futres/futres-data-interface#readme",
+  "keywords": [],
+  "devDependencies": {
+    "del": "^7.1.0",
+    "rimraf": "^5.0.7",
+    "url": "^0.11.3"
+  }
+}
