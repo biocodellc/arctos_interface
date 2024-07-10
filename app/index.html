@@ -171,23 +171,19 @@
 	  Max <input type="text" eui-query="ejs.RangeQuery('dayOfYear').lte(maxDay)" ng-model="maxDay" eui-enabled="maxDay.length" size="4" />
 	  -->
 
-          <h3>Source</h3>
+          <h3>DataSource</h3>
           <eui-singleselect
-            field="'source'"
+            field="'datasource'"
             size="10"
           ></eui-singleselect>
 
-          <h3>Sub-Source</h3>
-          <eui-singleselect
-            field="'subSource'"
-            size="10"
-          ></eui-singleselect>
-
+		  <!--
           <h3>Presence/Absence</h3>
           <eui-singleselect
             field="'status'"
             size="500"
           ></eui-singleselect>
+		  -->
 
           <h3>Traits</h3>
           <eui-singleselect
@@ -195,8 +191,8 @@
             size="500"
           ></eui-singleselect>
 
-          <h3>Genus (top 50 hits)</h3>
-          <eui-singleselect field="'genus'" size="50"></eui-singleselect>
+          <h3>Family (top 50 hits)</h3>
+          <eui-singleselect field="'family'" size="50"></eui-singleselect>
 
           <h3>Results Per Page</h3>
           <select ng-model="indexVM.pageSize">
@@ -218,26 +214,31 @@
           <table class="table">
             <thead>
               <tr>
+                <th scope="col">DataSource</th>
                 <th scope="col">ScientificName</th>
-                <th scope="col">eventRemarks</th>
-                <th scope="col">status</th>
+                <th scope="col">Rank</th>
+                <th scope="col">Basis Of Record</th>
+                <th scope="col">occurrenceID</th>
                 <th scope="col">Year</th>
                 <th scope="col">dayOfYear</th>
-                <th scope="col">Genus</th>
-                <th scope="col">Source</th>
+                <th scope="col">Family</th>
+                <th scope="col">Image URL</th>
               </tr>
             </thead>
             <tbody>
               <tr ng-repeat="doc in indexVM.results.hits.hits">
-                <td>{{doc._source.scientificName}}</td>
-                <td>{{doc._source.eventRemarks}}</td>
-                <td>{{doc._source.status}}</td>
+                <td>{{doc._source.datasource}}</td>
+                <td>{{doc._source.scientific_name}}</td>
+                <td>{{doc._source.taxon_rank}}</td>
+                <td>{{doc._source.basis_of_record}}</td>
+                <td>{{doc._source.occurrenceID}}</td>
                 <td>{{doc._source.year}}</td>
-                <td>{{doc._source.dayOfYear}}</td>
-                <td>{{doc._source.genus}}</td>
+                <td>{{doc._source.day_of_year}}</td>
+                <td>{{doc._source.family}}</td>
+                <td>{{doc._source.observed_image_url}}</td>
                 <td>
-			<div ng-if="doc._source.occurrenceID"><a href='{{doc._source.occurrenceID}}' target=_blank>{{doc._source.source}}</a></div>
-                	<div ng-if="!doc._source.occurrenceID">{{doc._source.source}}</div>
+			<div ng-if="doc._source.occurrenceID"><a href='{{doc._source.occurrenceID}}' target=_blank>{{doc._source.occurenceID}}</a></div>
+                	<div ng-if="!doc._source.occurrenceID">{{doc._source.occurrenceID}}</div>
 		</td>
                 <!--<td>
                             {{if ${doc._source.projectId} == 'Vertnet'}} 'Vertnet'
