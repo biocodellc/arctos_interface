@@ -1,0 +1,3 @@
+[submodule "app/trait-viz"]
+	path = app/trait-viz
+	url = https://github.com/biocodellc/trait-viz.git
