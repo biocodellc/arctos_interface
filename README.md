@@ -2,11 +2,11 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/9aba2cd4-5eaa-4879-8e51-2c11c26a1719/deploy-status)](https://app.netlify.com/sites/phenobase/deploys)
 
 
-A lightweight interface for visualizing plant phenology, drawing on data that has been indexed using the 
-[ppo-data-pipeline](https://github.com/biocodellc/ppo-data-pipeline).  This interface is written
-in angularJS v1.7 and bootstrap v3.x and calls ElasticSearch at https://www.plantphenology.org/api/v1/query/ using the futres index.
+A lightweight interface for visualizing plant phenology, drawing on data that has been indexed using the script at
+[phenobase_data](https://github.com/Phenobase/phenobase_data).  This interface is written
+in angularJS v1.7 and bootstrap v3.x and calls ElasticSearch via [biscicol-server](https://github.com/biscicol/biscicol-server)
 
-The master branch of this repository is hosted on netlify and currently running at: https://futres-data-interface.netlify.app/
+The master branch of this repository is hosted on netlify and currently running at: https://phenobase.netlify.app/
 
 # first time installation steps
 ```
