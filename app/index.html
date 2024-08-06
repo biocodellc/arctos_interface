@@ -218,37 +218,32 @@
           <table class="table">
             <thead>
               <tr>
+                <th scope="col">GUID</th>
                 <th scope="col">DataSource</th>
                 <th scope="col">ScientificName</th>
                 <th scope="col">Rank</th>
                 <th scope="col">Basis Of Record</th>
-                <th scope="col">occurrenceID</th>
                 <th scope="col">Year</th>
                 <th scope="col">dayOfYear</th>
                 <th scope="col">Family</th>
-                <th scope="col">Image URL</th>
+                <th scope="col">Image</th>
               </tr>
             </thead>
             <tbody>
               <tr ng-repeat="doc in indexVM.results.hits.hits">
+                <td>{{doc._source.machine_learning_annotation_id}}</td>
                 <td>{{doc._source.datasource}}</td>
                 <td>{{doc._source.scientific_name}}</td>
                 <td>{{doc._source.taxon_rank}}</td>
                 <td>{{doc._source.basis_of_record}}</td>
-                <td>{{doc._source.occurrenceID}}</td>
                 <td>{{doc._source.year}}</td>
                 <td>{{doc._source.day_of_year}}</td>
                 <td>{{doc._source.family}}</td>
-                <td>{{doc._source.observed_image_url}}</td>
-                <td>
-			<div ng-if="doc._source.occurrenceID"><a href='{{doc._source.occurrenceID}}' target=_blank>{{doc._source.occurenceID}}</a></div>
-                	<div ng-if="!doc._source.occurrenceID">{{doc._source.occurrenceID}}</div>
-		</td>
-                <!--<td>
-                            {{if ${doc._source.projectId} == 'Vertnet'}} 'Vertnet'
-                            {{else}} <a href='https://geome-db.org/workbench/project-overview?projectId=${doc._source.projectID}' target=_blank>${doc._source.projectID}</a> 
-                            {{/if}}
-                        </td>-->
+				<td>
+    				<a href="{{doc._source.observed_image_url}}">
+	        		<img src="https://inaturalist-open-data.s3.amazonaws.com/photos/{{doc._source.observed_image_guid}}/small.jpeg" width="50" height="50" alt="Image">
+			    	</a>
+				</td>
               </tr>
             </tbody>
           </table>
