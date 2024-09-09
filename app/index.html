@@ -1,255 +1,81 @@
 ﻿<!DOCTYPE html>
-<html>
-  <head>
-    <title>Phenobase Search</title>
-    <link
-      rel="stylesheet"
-      href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-      crossorigin="anonymous"
-    />
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-animate.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-aria.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.6/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.12/angular-material.min.js"></script>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phenobase Search</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-xs-3 sidebar">
+        <h1>Phenobase Search</h1>
+        <p>This page displays search results from the Phenobase API.</p>
 
-    <script src="trait-viz/lib/elasticsearch.angular.js"></script>
-    <script src="trait-viz/lib/elastic.js"></script>
-    <script src="trait-viz/lib/elasticui.js"></script>
+        <!-- Download button and message -->
+        <!--<button id="downloadButton" class="btn btn-primary" disabled>Download Data</button>-->
+        <p class="text-muted">Download functionality coming soon.  Will be limited 100,000 records</p>
 
-    <style>
-      .sidebar {
-        position: fixed;
-        top: 0;
-        bottom: 0;
-        z-index: 1000;
-        display: block;
-        padding: 20px;
-        overflow-x: hidden;
-        overflow-y: auto;
-        background-color: #f5f5f5;
-        border-right: 1px solid #eee;
-      }
-    </style>
-    <script>
-      angular
-        .module("tutorial", ["elasticui", "ngMaterial"])
-        .constant("euiHost", "https://biscicol.org/phenobase/api/v1/query/") // cluster address
-        .controller("myCtrl", [
-          "$scope",
-          "$http",
-          function ($scope, $http) {
-            $scope.selectedAttributes = [];
-            $scope.disableDownload = true;
-            $scope.clicked = function () {
-              // Construct query string to download service like
-              queryTerms = $scope.indexVM.filters.jsonObjects;
-              queryString = "q=";
-              termCounter = 0;
+        <!-- Faceted Search Section -->
+        <div class="facet-title">Search by Scientific Name</div>
+        <input type="text" id="scientificNameSearch" class="form-control" placeholder="Enter scientific name">
 
-              if ($scope.indexVM.query) {
-                queryString +=
-                  '+scientificName:"' + $scope.indexVM.query.query() + '"';
-                termCounter++;
-              }
+        <!-- Dynamic facets will be populated here -->
+        <div class="facet-title">DataSource</div>
+        <div id="dataSourceFacets"></div>
 
-              for (var i = 0; i < queryTerms.length; i++) {
-                var obj = JSON.parse(queryTerms[i]);
+        <div class="facet-title">Traits</div>
+        <div id="traitFacets"></div>
 
-                for (var i = 0; i < queryTerms.length; i++) {
-                  var obj = JSON.parse(queryTerms[i]);
-                  for (var key in obj) {
-                    Statement = obj[key];
+        <div class="facet-title">Family</div>
+        <div id="familyFacets"></div>
 
-                    for (var term in obj[key]) {
-                      if (termCounter > 0) {
-                        queryString += "++AND++";
-                      }
-                      value = Statement[term].toString().replace(/\s/g, "+");
-                      queryString += "+" + term + ':"' + value + '"';
-                      termCounter++;
-                    }
-                  }
-                }
-              }
-              if (termCounter > 0) {
-                $scope.message = false;
-                queryStringRootURL =
-                  "https://biscicol.org/phenobase/api/v3/download/_search?";
-                downloadLink = queryStringRootURL + queryString + "&limit=100000";
-                console.log("downloadLink = " + downloadLink);
-                $scope.loading = true;
+        <div class="facet-title">Basis of Record</div>
+        <div id="basisOfRecordFacets"></div>
 
-                $http({
-                  method: "GET",
-                  url: downloadLink,
-                  keepJson: true,
-                  responseType: "arraybuffer",
-                }).then(
-                  function successCallback(response) {
-                    // here we know to expect a CSV/gzipped file so just name it here
-                    var filename = "ppo.zip";
-                    var contentType = response.headers["content-type"];
-                    var linkElement = document.createElement("a");
-                    try {
-                      var blob = new Blob([response.data], {
-                        type: contentType,
-                      });
-                      var url = window.URL.createObjectURL(blob);
+        <!-- Container for displaying selected facets -->
+        <div id="selectedFacets" class="selected-facets-container"></div>
+      </div>
 
-                      linkElement.setAttribute("href", url);
-
-                      linkElement.setAttribute("download", filename);
-
-                      var clickEvent = new MouseEvent("click", {
-                        view: window,
-                        bubbles: true,
-                        cancelable: false,
-                      });
-                      linkElement.dispatchEvent(clickEvent);
-                      $scope.loading = false;
-                    } catch (ex) {
-                      console.log(ex);
-                    }
-                  },
-                  function errorCallback(response) {
-                    console.log(response);
-                  }
-                );
-              }
-              if (termCounter == 0) {
-                $scope.message = true;
-              }
-            };
-          },
-        ]);
-    </script>
-  </head>
-
-  <body ng-app="tutorial" ng-controller="myCtrl" eui-index="'phenobase'">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-xs-3 sidebar">
-          <h1>Phenobase Search</h1>
-			<!--
-          <div>
-            <button
-              type="submit"
-              ng-click="clicked()"
-              class="btn btn-success"
-              ng-disabled="loading"
-            >
-              Download
-            </button>
-            <div ng-show="loading">
-              <md-progress-circular mode="indeterminate"></md-progress-circular>
-            </div>
-          </div>
-	  <div>NOTE: There is a hard limit of 100,000 limits per download through this web interface. See email contact below for downloading more.</div>
-          <div ng-show="message">
-            Select at least one filter condition before downloading
-          </div>
-          <div ng-show="loading">
-	    The download process may take several minutes depending on available
-            bandwidth and number of records requested. The ppo database needs
-            to first package your request and then return the data to your
-            browser. If you encounter issues downloading, try reducing the size
-            of your query.
-          </div>
--->
-          <h3>Search by scientific name</h3>
-          <eui-searchbox field="'scientific_name'"></eui-searchbox>
-
-	  <!--<h3>Day of Year</h3>
-	  // These work, sort of ... however, code only allows one query of these types at a time
-	  // Need to research how to have multiple query conditions
-	  Min <input type="text" eui-query="ejs.RangeQuery('dayOfYear').gte(minDay)" ng-model="minDay" eui-enabled="minDay.length" size="4" />
-	  Max <input type="text" eui-query="ejs.RangeQuery('dayOfYear').lte(maxDay)" ng-model="maxDay" eui-enabled="maxDay.length" size="4" />
-	  -->
-
-          <h3>DataSource</h3>
-          <eui-singleselect
-            field="'datasource'"
-            size="10"
-          ></eui-singleselect>
-
-		  <!--
-          <h3>Presence/Absence</h3>
-          <eui-singleselect
-            field="'status'"
-            size="500"
-          ></eui-singleselect>
-		  -->
-
-          <h3>Traits</h3>
-          <eui-singleselect
-            field="'mapped_traits'"
-            size="500"
-          ></eui-singleselect>
-
-          <h3>Family</h3>
-          <eui-singleselect field="'family'" size="50"></eui-singleselect>
-
-          <h3>Basis of Record</h3>
-          <eui-singleselect field="'basis_of_record'" size="50"></eui-singleselect>
-
-          <h3>Results Per Page</h3>
-          <select ng-model="indexVM.pageSize">
-            <option ng-repeat="item in [10, 15, 20, 50, 100]">{{item}}</option>
-          </select>
-
-          <p></p>
-          <i
-            >This site is currently in Beta and may change at any time without
-            warning. Funding support from the the National Science Foundation.
-            Infrastructure support from iDigBio and CyVerse. This site is made
-            available for research purposes and the site developers make no
-            warranty or guarrantee for data contents. Comments can be made by
-            email to jdeck88@gmail.com</i
-          >
-        </div>
-        <div class="col-xs-9 col-xs-offset-3 main">
-          <h1>{{indexVM.results.aggregations.filtered_source_0.doc_count | number : fractionSiz}} Results</h1>
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">DataSource</th>
-                <th scope="col">ScientificName</th>
-                <th scope="col">Rank</th>
-                <th scope="col">Year</th>
-                <th scope="col">dayOfYear</th>
-                <th scope="col">Family</th>
-                <th scope="col">Trait</th>
-                <th scope="col">Prediction Class</th>
-                <th scope="col">Image</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="doc in indexVM.results.hits.hits">
-                <td>{{doc._source.datasource}}</td>
-                <td>{{doc._source.scientific_name}}</td>
-                <td>{{doc._source.taxon_rank}}</td>
-                <td>{{doc._source.year}}</td>
-                <td>{{doc._source.day_of_year}}</td>
-                <td>{{doc._source.family}}</td>
-                <td>{{doc._source.trait}}</td>
-                <td>{{doc._source.prediction_class}}</td>
-				<td>
-    				<a href="{{doc._source.observed_image_url}}" target="_blank">
-	        		<img src="{{doc._source.observed_image_guid}}" width="85" height="85" alt="Image">
-			    	</a>
-				</td>
-              </tr>
-            </tbody>
-          </table>
-          <eui-simple-paging></eui-simple-paging>
-        </div>
+      <div class="col-xs-9 col-xs-offset-3 main">
+        <h1>Search Results</h1>
+        <table id="resultsTable" class="table">
+          <thead>
+            <tr>
+              <th scope="col">DataSource</th>
+              <th scope="col">Scientific Name</th>
+              <th scope="col">Rank</th>
+              <th scope="col">Year</th>
+              <th scope="col">Day Of Year</th>
+              <th scope="col">Family</th>
+              <th scope="col">Trait</th>
+              <th scope="col">Prediction Class</th>
+              <th scope="col">Image</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
-  </body>
+  </div>
+
+  <!-- Spinner/Loader -->
+  <div id="loader" class="loader-overlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Modal for displaying row details -->
+  <div id="detailsModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-button" id="closeModal">X</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Load jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="script.js"></script> <!-- Link to external JavaScript -->
+</body>
 </html>
