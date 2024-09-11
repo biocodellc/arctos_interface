@@ -7,6 +7,35 @@ var apiUrl = `https://biscicol.org/phenobase/api/v1/query//phenobase/_search?siz
 var queryStringRootURL = "https://biscicol.org/phenobase/api/v1/download/_search?"; // Root URL for download link
 var downloadLink = ""; // Holds the constructed download link
 
+// Initialize the Leaflet map
+var map = L.map('map').setView([0, 0], 2); // Default to world view
+
+// Define different map layers
+const baseLayers = {
+  "Regular": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+  }),
+  "Topo": L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenTopoMap contributors'
+  }),
+  "Satellite": L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    maxZoom: 18,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    attribution: '© Google'
+  })
+};
+
+// Add the default map layer
+baseLayers.Regular.addTo(map);
+
+// Add layer control to switch between map types
+L.control.layers(baseLayers).addTo(map);
+
+// Initialize marker cluster group to handle overlapping markers
+var markersCluster = L.markerClusterGroup().addTo(map);
+
 // Request payload for the aggregations
 var requestData = {
   aggs: {
@@ -49,11 +78,11 @@ var scientificNameFilter = null; // To keep track of the scientific name search 
 // Function to fetch data from the Elasticsearch API
 function fetchResults() {
   showLoader(); // Show loader when starting a new fetch
-  
+
   // Calculate the offset for pagination
   const offset = (currentPage - 1) * pageSize;
   const apiWithPagination = `${apiUrl.split('?')[0]}?size=${pageSize}&from=${offset}`;
-  
+
   $.ajax({
     url: apiWithPagination,
     method: "POST",
@@ -67,11 +96,22 @@ function fetchResults() {
       // Ensure the response contains the hits data
       if (response && response.hits && response.hits.hits) {
         var results = response.hits.hits;
+        var totalResults = calculateTotalFromFacets(response.aggregations); // Total number of results from the facets
+
+        // Calculate showing results range
+        const startResult = offset + 1; // Starting index of results shown (1-based)
+        const endResult = Math.min(offset + results.length, totalResults); // End index of results shown
+        const showingResults = `${startResult} - ${endResult}`; // Format to "Showing X - Y"
+
         renderResults(results);
         renderFacets(response.aggregations);
         renderSelectedFacets(); // Render selected facets with "X" buttons
         updateDownloadLink(); // Update the download link with the current query
-        renderPagination(response.hits.total.value); // Render pagination controls
+        renderPagination(totalResults); // Render pagination controls
+        renderMapMarkers(results); // Render markers on the map
+
+        // Update the heading to show the number of results
+        updateResultsHeading(showingResults, totalResults);
       } else {
         console.error("Unexpected response structure:", response);
         alert("Unexpected response structure. Check the console for details.");
@@ -83,6 +123,151 @@ function fetchResults() {
     },
   });
 }
+
+// Function to calculate the total number of results based on facet aggregations
+function calculateTotalFromFacets(aggregations) {
+  let total = 0;
+
+  // Example of calculating total based on datasource_0 aggregation - adjust as needed
+  if (aggregations.datasource_0 && aggregations.datasource_0.buckets) {
+    total = aggregations.datasource_0.buckets.reduce((sum, bucket) => sum + bucket.doc_count, 0);
+  }
+
+  // You can add other aggregations here if necessary to sum up the correct total
+  // For example, you might need to include other fields depending on your facet structure
+
+  return total;
+}
+
+// Function to update the results heading with the number of displayed and total results
+function updateResultsHeading(showingResults, totalResults) {
+  // Format the numbers with commas for better readability
+  const formattedTotalResults = totalResults.toLocaleString();
+
+  // Construct the message for the heading
+  const headingMessage = `Showing ${showingResults} of ${formattedTotalResults} total possible results`;
+
+  // Find the element and update its text
+  document.getElementById('resultsHeading').textContent = headingMessage;
+}
+
+// Call fetchResults when the document is ready
+$(document).ready(function () {
+  fetchResults();
+  $("#downloadButton").click(function (event) {
+    updateDownloadLink();
+    console.log(downloadLink);
+    if (!downloadLink) {
+      event.preventDefault(); // Prevent default action if no link is available
+    }
+  });
+});
+
+
+
+// Function to render markers on the map using latitude and longitude from the ES data
+function renderMapMarkers(results) {
+  // Clear existing markers
+  markersCluster.clearLayers();
+
+  // Group results by location
+  const locationMap = {};
+
+  results.forEach(function (doc) {
+    const { latitude, longitude } = doc._source; // Adjust these field names based on your actual data structure
+    const locationKey = `${latitude},${longitude}`;
+
+    if (!locationMap[locationKey]) {
+      locationMap[locationKey] = [];
+    }
+    locationMap[locationKey].push(doc);
+  });
+
+  // Iterate over grouped locations and create markers with paginated popups
+  Object.entries(locationMap).forEach(([locationKey, docs]) => {
+    const [latitude, longitude] = locationKey.split(',').map(Number);
+
+    // Create marker only if latitude and longitude exist
+    if (latitude && longitude) {
+      const marker = L.marker([latitude, longitude]);
+      markersCluster.addLayer(marker);
+
+      // Create the initial popup content with pagination
+      let currentIndex = 0;
+
+      function updatePopup() {
+        const start = currentIndex * 10;
+        const end = Math.min(start + 10, docs.length);
+        const currentDocs = docs.slice(start, end);
+
+        let popupContent = `
+          <div style="max-height: 200px; overflow-y: auto; padding-right: 10px;">
+        `;
+
+        // Loop through each document to display its fields
+        currentDocs.forEach(doc => {
+          const sourceData = doc._source;
+          popupContent += `<div style="margin-bottom: 0; font-size: 12px; line-height: 1.1;">`; // Condensed spacing
+          Object.entries(sourceData).forEach(([key, value]) => {
+            popupContent += `<p style="margin: 2px 0;"><strong>${key}:</strong> ${value}</p>`; // Reduced margin between lines
+          });
+          popupContent += `</div><hr style="margin: 4px 0;">`; // Reduced spacing for separator line
+        });
+
+        popupContent += `</div>`;
+
+        // Add navigation buttons only if there are multiple pages
+        if (docs.length > 10) {
+          popupContent += `
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+              <button id="prevRecord" ${currentIndex === 0 ? 'disabled' : ''}>Previous</button>
+              <span>Page ${currentIndex + 1} of ${Math.ceil(docs.length / 10)}</span>
+              <button id="nextRecord" ${end >= docs.length ? 'disabled' : ''}>Next</button>
+            </div>`;
+        }
+
+        marker.setPopupContent(popupContent);
+      }
+
+      // Bind the initial popup to the marker
+      marker.bindPopup().openPopup();
+      updatePopup();
+
+      // Prevent popup from closing when interacting with buttons
+      marker.on('popupopen', function () {
+        attachPopupEventListeners();
+      });
+
+      function attachPopupEventListeners() {
+        document.getElementById('nextRecord')?.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (currentIndex < Math.ceil(docs.length / 10) - 1) {
+            currentIndex++;
+            updatePopup();
+            setTimeout(attachPopupEventListeners, 0); // Reattach listeners after update
+          }
+        });
+
+        document.getElementById('prevRecord')?.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (currentIndex > 0) {
+            currentIndex--;
+            updatePopup();
+            setTimeout(attachPopupEventListeners, 0); // Reattach listeners after update
+          }
+        });
+      }
+    }
+  });
+
+  // Fit the map to show all markers
+  if (markersCluster.getLayers().length > 0) {
+    map.fitBounds(markersCluster.getBounds());
+  }
+}
+
 
 // Function to render the results in the UI
 function renderResults(results) {
@@ -300,36 +485,38 @@ $("#searchButton").click(function () {
 
 // Function to render pagination controls
 function renderPagination(totalResults) {
-  const paginationContainer = $("#pagination");
-  paginationContainer.empty();
+  console.log("rendering pagination")
+  const paginationContainer = document.getElementById('pagination');
+  paginationContainer.innerHTML = ''; // Clear existing pagination
 
   // Calculate total pages
   const totalPages = Math.ceil(totalResults / pageSize);
 
   // Add Previous button
   if (currentPage > 1) {
-    paginationContainer.append(
-      `<button id="prevPage" class="pagination-button">Previous</button>`
-    );
+    const prevButton = document.createElement('button');
+    prevButton.className = 'pagination-button';
+    prevButton.textContent = 'Previous';
+    prevButton.onclick = () => {
+      currentPage--;
+      fetchResults(); // Fetch new results for the updated page
+    };
+    paginationContainer.appendChild(prevButton);
   }
 
   // Add Next button
   if (currentPage < totalPages) {
-    paginationContainer.append(
-      `<button id="nextPage" class="pagination-button">Next</button>`
-    );
-  }
-
-  // Event listener for pagination buttons
-  $(".pagination-button").click(function () {
-    if ($(this).attr("id") === "prevPage") {
-      currentPage--;
-    } else if ($(this).attr("id") === "nextPage") {
+    const nextButton = document.createElement('button');
+    nextButton.className = 'pagination-button';
+    nextButton.textContent = 'Next';
+    nextButton.onclick = () => {
       currentPage++;
-    }
-    fetchResults(); // Fetch new results for the updated page
-  });
+      fetchResults(); // Fetch new results for the updated page
+    };
+    paginationContainer.appendChild(nextButton);
+  }
 }
+
 
 // Function to show details modal with _source fields
 function showDetailsModal(sourceData) {
@@ -397,4 +584,20 @@ $(document).ready(function () {
       event.preventDefault(); // Prevent default action if no link is available
     }
   });
+});
+
+// Toggle between Table and Map view
+$("#showTable").click(function () {
+  $("#tableContainer").show(); // Show the table container
+  $("#mapContainer").hide(); // Hide the map container
+});
+
+$("#showMap").click(function () {
+  $("#mapContainer").show(); // Show the map container
+  $("#tableContainer").hide(); // Hide the table container
+
+  // Resize the map to ensure it's displayed correctly when shown
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 100);
 });
