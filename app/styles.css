@@ -159,4 +159,109 @@
   cursor: pointer;
 }
 
+/* Ensure the HTML and body take up the full height of the viewport */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Set the container-fluid class to full height */
+.container-fluid {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make the row inside the container-fluid fill available space */
+.row {
+  flex: 1;
+  display: flex;
+}
+
+/* Sidebar adjustments to ensure proper layout */
+.sidebar {
+  overflow-y: auto;
+}
+
+/* Main content adjustments for table and map views */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Set the map container to fill available height */
+#mapContainer {
+  flex: 1; /* Allows the map to expand within its container */
+}
+
+/* Set the map itself to fill the entire height of its container */
+#map {
+  height: 100%; /* Ensures the map takes up the full height */
+}
+
+/* Selection Bar Styles */
+.toggle-bar {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  gap: 10px;
+}
+
+/* Custom button styles for a softer, more muted appearance */
+.btn-custom-table {
+  background-color: #6c757d; /* Muted blue-gray */
+  border: none;
+  color: white;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-custom-table:hover {
+  background-color: #5a6268; /* Slightly darker on hover */
+}
+
+.btn-custom-map {
+  background-color: #6c757d; /* Muted green-gray */
+  border: none;
+  color: white;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.btn-custom-map:hover {
+  background-color: #5a6268; /* Slightly darker on hover */
+}
+
+.toggle-bar #resultsHeading {
+  font-weight: normal;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Basic Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.pagination-container .pagination-button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-container .pagination-button:hover {
+  background-color: #e2e6ea;
+}
+
+.pagination-container .pagination-button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
 
