@@ -1,5 +1,9 @@
-// API URL
-var apiUrl = "https://biscicol.org/phenobase/api/v1/query//phenobase/_search?size=15&from=0";
+// Initialize pagination variables
+let currentPage = 1;
+const pageSize = 15; // Number of results per page
+
+// API URL with placeholders for pagination
+var apiUrl = `https://biscicol.org/phenobase/api/v1/query//phenobase/_search?size=${pageSize}&from=0`;
 var queryStringRootURL = "https://biscicol.org/phenobase/api/v1/download/_search?"; // Root URL for download link
 var downloadLink = ""; // Holds the constructed download link
 
@@ -45,8 +49,13 @@ var scientificNameFilter = null; // To keep track of the scientific name search 
 // Function to fetch data from the Elasticsearch API
 function fetchResults() {
   showLoader(); // Show loader when starting a new fetch
+  
+  // Calculate the offset for pagination
+  const offset = (currentPage - 1) * pageSize;
+  const apiWithPagination = `${apiUrl.split('?')[0]}?size=${pageSize}&from=${offset}`;
+  
   $.ajax({
-    url: apiUrl,
+    url: apiWithPagination,
     method: "POST",
     contentType: "application/json",
     data: JSON.stringify(requestData),
@@ -62,6 +71,7 @@ function fetchResults() {
         renderFacets(response.aggregations);
         renderSelectedFacets(); // Render selected facets with "X" buttons
         updateDownloadLink(); // Update the download link with the current query
+        renderPagination(response.hits.total.value); // Render pagination controls
       } else {
         console.error("Unexpected response structure:", response);
         alert("Unexpected response structure. Check the console for details.");
@@ -96,7 +106,7 @@ function renderResults(results) {
                 <th>Image</th>
             </tr>
         </thead>`;
-        table.prepend(thead); // Add <thead> to the table
+  table.prepend(thead); // Add <thead> to the table
 
   results.forEach(function (doc) {
     var row = `<tr data-source='${JSON.stringify(doc._source)}'>
@@ -281,9 +291,6 @@ function handleScientificNameSearch() {
 
   // Fetch results based on the updated query
   fetchResults();
-
-  // Optionally clear the search box after executing the search
-  //$("#scientificNameSearch").val('');
 }
 
 // Event listener for the search button click
@@ -291,11 +298,40 @@ $("#searchButton").click(function () {
   handleScientificNameSearch();
 });
 
-// Event listener for scientific name input field
-//$("#scientificNameSearch").on("input", function () {
-//  handleScientificNameSearch(); // Handle changes when text is edited or cleared
-//});
+// Function to render pagination controls
+function renderPagination(totalResults) {
+  const paginationContainer = $("#pagination");
+  paginationContainer.empty();
 
+  // Calculate total pages
+  const totalPages = Math.ceil(totalResults / pageSize);
+
+  // Add Previous button
+  if (currentPage > 1) {
+    paginationContainer.append(
+      `<button id="prevPage" class="pagination-button">Previous</button>`
+    );
+  }
+
+  // Add Next button
+  if (currentPage < totalPages) {
+    paginationContainer.append(
+      `<button id="nextPage" class="pagination-button">Next</button>`
+    );
+  }
+
+  // Event listener for pagination buttons
+  $(".pagination-button").click(function () {
+    if ($(this).attr("id") === "prevPage") {
+      currentPage--;
+    } else if ($(this).attr("id") === "nextPage") {
+      currentPage++;
+    }
+    fetchResults(); // Fetch new results for the updated page
+  });
+}
+
+// Function to show details modal with _source fields
 function showDetailsModal(sourceData) {
   var modal = $("#detailsModal");
   var modalBody = $("#modalBody");
@@ -334,8 +370,6 @@ function showDetailsModal(sourceData) {
   modal.css("display", "flex");
 }
 
-
-
 // Event listener to close the modal
 $("#closeModal").click(function () {
   $("#detailsModal").hide();
@@ -357,9 +391,8 @@ function hideLoader() {
 $(document).ready(function () {
   fetchResults();
   $("#downloadButton").click(function (event) {
-    //alert("downloadbutton pressed")
-    updateDownloadLink()
-    console.log(downloadLink)
+    updateDownloadLink();
+    console.log(downloadLink);
     if (!downloadLink) {
       event.preventDefault(); // Prevent default action if no link is available
     }
