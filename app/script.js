@@ -76,13 +76,33 @@ function fetchResults() {
 
 // Function to render the results in the UI
 function renderResults(results) {
+  var table = $("#resultsTable");
+  table.find("thead").remove();
+
   var tableBody = $("#resultsTable tbody");
   tableBody.empty(); // Clear existing rows
 
+  var thead = `<thead>
+            <tr>
+                <th>View Details</th>
+                <th>Datasource</th>
+                <th>Scientific Name</th>
+                <th>Taxon Rank</th>
+                <th>Year</th>
+                <th>Day of Year</th>
+                <th>Family</th>
+                <th>Trait</th>
+                <th>Prediction Class</th>
+                <th>Image</th>
+            </tr>
+        </thead>`;
+        table.prepend(thead); // Add <thead> to the table
+
   results.forEach(function (doc) {
-    var row = `<tr class="result-row" data-source='${JSON.stringify(
-      doc._source
-    )}'>
+    var row = `<tr data-source='${JSON.stringify(doc._source)}'>
+      <td class="view-details">
+        <i class="fa fa-search view-icon" style="cursor: pointer;" title="View Details" data-source='${JSON.stringify(doc._source)}'></i>
+      </td>  
       <td>${doc._source.datasource}</td>
       <td>${doc._source.scientific_name}</td>
       <td>${doc._source.taxon_rank}</td>
@@ -100,8 +120,8 @@ function renderResults(results) {
     tableBody.append(row);
   });
 
-  // Add click event listener to each row to show details in a modal
-  $(".result-row").click(function () {
+  // Add click event listener to the magnifying glass icon to show details in a modal
+  $(".view-icon").click(function () {
     var sourceData = $(this).data("source");
     showDetailsModal(sourceData);
   });
@@ -245,15 +265,15 @@ function updateDownloadLink() {
     .prop("disabled", false);
 }
 
-// Function to handle scientific name search
+// Function to handle scientific name search when the button is clicked
 function handleScientificNameSearch() {
   var scientificName = $("#scientificNameSearch").val().trim();
 
   // Update the scientific name filter
   if (scientificName) {
-    scientificNameFilter = { match: { scientific_name: scientificName } };
+      scientificNameFilter = { match: { scientific_name: scientificName } };
   } else {
-    scientificNameFilter = null; // Clear the filter if input is empty
+      scientificNameFilter = null; // Clear the filter if input is empty
   }
 
   // Update the query with selected facets and the scientific name
@@ -261,27 +281,60 @@ function handleScientificNameSearch() {
 
   // Fetch results based on the updated query
   fetchResults();
+
+  // Optionally clear the search box after executing the search
+  //$("#scientificNameSearch").val('');
 }
 
-// Event listener for scientific name input field
-$("#scientificNameSearch").on("input", function () {
-  handleScientificNameSearch(); // Handle changes when text is edited or cleared
+// Event listener for the search button click
+$("#searchButton").click(function () {
+  handleScientificNameSearch();
 });
 
-// Function to show details modal with _source fields
+// Event listener for scientific name input field
+//$("#scientificNameSearch").on("input", function () {
+//  handleScientificNameSearch(); // Handle changes when text is edited or cleared
+//});
+
 function showDetailsModal(sourceData) {
   var modal = $("#detailsModal");
   var modalBody = $("#modalBody");
   modalBody.empty(); // Clear previous content
 
-  // Display each field in a formatted way
+  // Create a container to hold the image and the details
+  var contentContainer = $(`
+      <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+          <div style="flex: 0 0 auto;">
+              <a href="${sourceData.observed_image_url}" target="_blank">
+                  <img src="${sourceData.observed_image_guid}" width="85" height="85" alt="Image">
+              </a>
+          </div>
+          <div style="flex: 1;">
+              <!-- Details will be appended here -->
+          </div>
+      </div>
+  `);
+
+  // Append the container to the modal body
+  modalBody.append(contentContainer);
+
+  // Append each key-value pair as a paragraph to the details section
   Object.entries(sourceData).forEach(([key, value]) => {
-    modalBody.append(`<p><strong>${key}:</strong> ${value}</p>`);
+      // Check if the key is for image or link and display them with special formatting if needed
+      if (key === 'observed_image_url' || key === 'observed_image_guid') {
+          // Display these fields specially, e.g., with the image and link already displayed
+          contentContainer.find('div:last-child').append(`<p><strong>${key}:</strong> <a href="${sourceData.observed_image_url}" target="_blank">${value}</a></p>`);
+      } else {
+          // Add the rest of the details normally
+          contentContainer.find('div:last-child').append(`<p><strong>${key}:</strong> ${value}</p>`);
+      }
   });
 
   // Show the modal
   modal.css("display", "flex");
-};
+}
+
+
 
 // Event listener to close the modal
 $("#closeModal").click(function () {

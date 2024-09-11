@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phenobase Search</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
@@ -20,8 +21,11 @@
 
         <!-- Faceted Search Section -->
         <div class="facet-title">Search by Scientific Name</div>
-        <input type="text" id="scientificNameSearch" class="form-control" placeholder="Enter scientific name">
-
+        <div class="search-container">
+          <input type="text" id="scientificNameSearch" placeholder="Enter scientific name">
+          <button id="searchButton">Go</button>
+      </div>
+        
         <!-- Dynamic facets will be populated here -->
         <div class="facet-title">DataSource</div>
         <div id="dataSourceFacets"></div>

@@ -141,5 +141,22 @@
   color: #c9302c;
 }
 
+.search-container {
+  display: flex;
+  gap: 10px; /* Space between input and button */
+}
+
+#scientificNameSearch {
+  flex: 1; /* Input takes up available space */
+  padding: 8px;
+  font-size: 16px;
+}
+
+#searchButton {
+  flex: 0 0 auto; /* Button takes only the space it needs */
+  padding: 8px 8px;
+  font-size: 10px;
+  cursor: pointer;
+}
 
 
