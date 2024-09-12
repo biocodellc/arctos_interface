@@ -4,7 +4,7 @@ const pageSize = 15; // Number of results per page
 
 // API URL with placeholders for pagination
 var apiUrl = `https://biscicol.org/phenobase/api/v1/query//phenobase/_search?size=${pageSize}&from=0`;
-var queryStringRootURL = "https://biscicol.org/phenobase/api/v1/download/_search?"; // Root URL for download link
+var queryStringRootURL = "https://biscicol.org/phenobase/api/v1/download/_search?q="; // Root URL for download link
 var downloadLink = ""; // Holds the constructed download link
 
 // Initialize the Leaflet map
@@ -74,6 +74,31 @@ var requestData = {
 // Keep track of selected facets
 var selectedFacets = {};
 var scientificNameFilter = null; // To keep track of the scientific name search filter
+
+// Function to convert JSON query object to Lucene query string
+function convertJsonToLucene(jsonQuery) {
+  let conditions = [];
+
+  // Check if it's a boolean query with "must" conditions
+  if (jsonQuery.bool && Array.isArray(jsonQuery.bool.must)) {
+    jsonQuery.bool.must.forEach((condition) => {
+      if (condition.term) {
+        // Convert term conditions
+        for (const [field, value] of Object.entries(condition.term)) {
+          conditions.push(`${field}:"${value}"`);
+        }
+      } else if (condition.match) {
+        // Convert match conditions
+        for (const [field, value] of Object.entries(condition.match)) {
+          conditions.push(`${field}:"${value}"`);
+        }
+      }
+    });
+  }
+
+  // Join conditions with "AND"
+  return conditions.join(' AND ');
+}
 
 // Function to fetch data from the Elasticsearch API
 function fetchResults() {
@@ -162,8 +187,6 @@ $(document).ready(function () {
     }
   });
 });
-
-
 
 // Function to render markers on the map using latitude and longitude from the ES data
 function renderMapMarkers(results) {
@@ -267,7 +290,6 @@ function renderMapMarkers(results) {
     map.fitBounds(markersCluster.getBounds());
   }
 }
-
 
 // Function to render the results in the UI
 function renderResults(results) {
@@ -450,8 +472,11 @@ function updateQueryWithSelectedFacets() {
 
 // Function to construct the download link based on the current query
 function updateDownloadLink() {
-  var queryString = JSON.stringify(requestData.query); // Convert the query to a string
-  downloadLink = queryStringRootURL + encodeURIComponent(queryString) + "&limit=100000"; // Construct the download link
+  // Convert the JSON query to Lucene format using the conversion function
+  const luceneQuery = convertJsonToLucene(requestData.query);
+
+  // Construct the download link using the Lucene query
+  downloadLink = `${queryStringRootURL}${encodeURIComponent(luceneQuery)}&limit=100000`;
 
   // Enable the download button and update the href attribute
   $("#downloadButton")
@@ -466,9 +491,9 @@ function handleScientificNameSearch() {
 
   // Update the scientific name filter
   if (scientificName) {
-      scientificNameFilter = { match: { scientific_name: scientificName } };
+    scientificNameFilter = { match: { scientific_name: scientificName } };
   } else {
-      scientificNameFilter = null; // Clear the filter if input is empty
+    scientificNameFilter = null; // Clear the filter if input is empty
   }
 
   // Update the query with selected facets and the scientific name
@@ -516,7 +541,6 @@ function renderPagination(totalResults) {
     paginationContainer.appendChild(nextButton);
   }
 }
-
 
 // Function to show details modal with _source fields
 function showDetailsModal(sourceData) {

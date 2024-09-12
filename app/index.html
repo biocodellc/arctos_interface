@@ -11,18 +11,21 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<!-- Leaflet MarkerCluster CSS and JS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
-
+  <!-- Leaflet MarkerCluster CSS and JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  
+  <!-- jQuery UI CSS -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  
 </head>
 <body>
   <div class="container-fluid">
     <div class="row">
       <div class="col-xs-3 sidebar">
         <img src='banner.png' width=100%>
+
 
         <!-- Faceted Search Section -->
         <div class="facet-title">Search by Scientific Name</div>
@@ -47,21 +50,22 @@
         <!-- Container for displaying selected facets -->
         <div id="selectedFacets" class="selected-facets-container"></div>
 
-        <p class="text-muted">Download functionality coming soon. Will be limited to 100,000 records. All records are retrieved from the <a href='https://github.com/biocodellc/biscicol-server/' target=_blank>Phenobase API</a>.  Visit the <a href='https://phenobase.org/' target=_blank>Phenobase website</a> for more information.</p>
+        <button id="downloadButton" class="btn btn-primary">Download Data</button>
 
+        <p class="text-muted"> 
+          All records are retrieved from the <a href='https://github.com/biocodellc/biscicol-server/' target=_blank>Phenobase API</a>.  
+          Visit the <a href='https://phenobase.org/' target=_blank>Phenobase website</a> for more information.</p>
       </div>
 
       <div class="col-xs-9 col-xs-offset-3 main">
-
-<!-- Selection bar for displaying results count and toggling between views -->
-<div class="toggle-bar d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded">
-  <span id="resultsHeading" class="text-muted">Showing Results</span>
-  <div class="btn-group ms-auto" role="group" style="margin-left: auto;">
-    <button id="showTable" class="btn btn-custom-table">Table View</button>
-    <button id="showMap" class="btn btn-custom-map">Map View</button>
-  </div>
-</div>
-
+        <!-- Selection bar for displaying results count and toggling between views -->
+        <div class="toggle-bar d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded">
+          <span id="resultsHeading" class="text-muted">Showing Results</span>
+          <div class="btn-group ms-auto" role="group" style="margin-left: auto;">
+            <button id="showTable" class="btn btn-custom-table">Table View</button>
+            <button id="showMap" class="btn btn-custom-map">Map View</button>
+          </div>
+        </div>
 
         <!-- Container for map view -->
         <div id="mapContainer" style="display: none;">
@@ -88,14 +92,26 @@
           </table>
           <div id="pagination"></div>
         </div>
-
       </div>
     </div>
   </div>
 
   <!-- Spinner/Loader -->
   <div id="loader" class="loader-overlay">
-    <div class="spinner"></div>
+    <div id="spinner" style="display: none;">Loading...</div>
+  </div>
+
+  <!-- Human Verification Dialog -->
+  <div id="humanCheckDialog" title="Verification Required">
+    <div class="robot-icon">
+      <i class="fas fa-robot"></i>
+    </div>
+    <p>This service will initiate a download of up to 100,000 records from the Phenobase database.</p>
+    <p>Citation and data use policy is included with the download bundle.
+    <p>Counts from downloaded data use exact-match scientific-names whereas the queries on the interface use full-text 
+          matching which results in possibly fewer downloaded results than the UI query syntax may show.
+    </p>
+    <p>Download may take up to 1 minute to commence.</p>
   </div>
 
   <!-- Modal for displaying row details -->
@@ -106,8 +122,54 @@
     </div>
   </div>
 
-  <!-- Load jQuery -->
+  <!-- Load jQuery and jQuery UI -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
   <script src="script.js"></script> <!-- Link to external JavaScript -->
+
+  <script>
+    $(document).ready(function () {
+      fetchResults(); // Assuming this function exists and fetches data
+
+      $("#downloadButton").click(function (event) {
+        event.preventDefault(); // Prevent the default action initially
+        updateDownloadLink(); // Update the download link
+        console.log(downloadLink);
+
+        if (!downloadLink) {
+          alert("No download link available.");
+          return;
+        }
+
+        // Start the spinner
+        $("#spinner").show();
+
+        // Open the human verification dialog
+        $("#humanCheckDialog").dialog({
+          modal: true,
+          buttons: {
+            "Download": function () {
+              // Close the dialog
+              $(this).dialog("close");
+
+              // Stop the spinner
+              $("#spinner").hide();
+
+              // Initiate the download
+              window.location.href = downloadLink; // Replace with your download link variable
+            },
+            Cancel: function () {
+              // Close the dialog and stop spinner if canceled
+              $(this).dialog("close");
+              $("#spinner").hide();
+            },
+          },
+          open: function () {
+            $(".ui-dialog-titlebar-close").hide(); // Optionally hide the close button to force user interaction
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

@@ -264,4 +264,20 @@ html, body {
   cursor: not-allowed;
 }
 
+#humanCheckDialog {
+  display: none;
+  text-align: center;
+}
+#humanCheckDialog .robot-icon {
+  font-size: 40px;
+  color: #3a87ad;
+  margin-bottom: 10px;
+}
+#humanCheckDialog p {
+  font-size: 14px;
+  margin: 10px 0;
+}
+.ui-dialog-titlebar-close {
+  display: none; /* Hide the close button */
+}
 
