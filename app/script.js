@@ -614,14 +614,125 @@ $(document).ready(function () {
 $("#showTable").click(function () {
   $("#tableContainer").show(); // Show the table container
   $("#mapContainer").hide(); // Hide the map container
+  $("#statsContainer").hide(); // Hide the stats container
 });
+
 
 $("#showMap").click(function () {
   $("#mapContainer").show(); // Show the map container
   $("#tableContainer").hide(); // Hide the table container
+  $("#statsContainer").hide(); // Hide the stats container
 
   // Resize the map to ensure it's displayed correctly when shown
   setTimeout(() => {
     map.invalidateSize();
   }, 100);
+});
+
+
+// Function to render tables based on aggregations
+function renderTables(aggregations) {
+  // Helper function to create a table
+  function renderTable(id, headers, rows, title) {
+    const container = document.getElementById(id);
+    container.innerHTML = ""; // Clear previous content
+
+    // Create table title
+    const titleElement = document.createElement("h3");
+    titleElement.textContent = title;
+    container.appendChild(titleElement);
+
+    // Create table element
+    const table = document.createElement("table");
+    table.classList.add("table", "table-striped");
+
+    // Create table header
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    headers.forEach((header) => {
+      const th = document.createElement("th");
+      th.textContent = header;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create table body
+    const tbody = document.createElement("tbody");
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      row.forEach((cell) => {
+        const td = document.createElement("td");
+        td.textContent = cell;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    // Append the table to the container
+    container.appendChild(table);
+  }
+
+  // Datasource Table
+  const datasourceBuckets = aggregations.datasource_0?.buckets || [];
+  const datasourceHeaders = ["Datasource", "Count"];
+  const datasourceRows = datasourceBuckets.map((bucket) => [bucket.key, bucket.doc_count.toLocaleString()]);
+  renderTable("datasourceTable", datasourceHeaders, datasourceRows, "Datasource Distribution");
+
+  // Mapped Traits Table
+  const mappedTraitsBuckets = aggregations.mapped_traits_1?.buckets || [];
+  const mappedTraitsHeaders = ["Trait", "Count"];
+  const mappedTraitsRows = mappedTraitsBuckets.map((bucket) => [bucket.key, bucket.doc_count.toLocaleString()]);
+  renderTable("mappedTraitsTable", mappedTraitsHeaders, mappedTraitsRows, "Mapped Traits Distribution");
+
+  // Family Table
+  const familyBuckets = aggregations.family_2?.buckets || [];
+  const familyHeaders = ["Family", "Count"];
+  const familyRows = familyBuckets.map((bucket) => [bucket.key, bucket.doc_count.toLocaleString()]);
+  renderTable("familyTable", familyHeaders, familyRows, "Family Distribution");
+
+  // Basis of Record Table
+  const basisOfRecordBuckets = aggregations.basis_of_record_3?.buckets || [];
+  const basisOfRecordHeaders = ["Basis of Record", "Count"];
+  const basisOfRecordRows = basisOfRecordBuckets.map((bucket) => [bucket.key, bucket.doc_count.toLocaleString()]);
+  renderTable("basisOfRecordTable", basisOfRecordHeaders, basisOfRecordRows, "Basis of Record Distribution");
+}
+
+// Function to fetch stats data from the API using POST request
+function fetchStatsData() {
+  const statsApiUrl = "https://biscicol.org/phenobase/api/v1/query//phenobase/_search?size=15&from=0";
+
+  $.ajax({
+    url: statsApiUrl,
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify(requestData),
+    dataType: "json",
+    success: function (response) {
+      console.log("Stats API Response:", response);
+
+      // Check if aggregations exist in the response
+      if (response && response.aggregations) {
+        renderTables(response.aggregations);
+      } else {
+        console.error("No aggregations found in the response.");
+        alert("No data available for stats view.");
+      }
+    },
+    error: function (error) {
+      console.error("Error fetching stats data:", error);
+      alert("Failed to load stats data. Check console for details.");
+    },
+  });
+}
+
+// Event listener for the Stats View tab
+$("#showStats").click(function () {
+  $("#statsContainer").show();
+  $("#mapContainer").hide();
+  $("#tableContainer").hide();
+
+  // Fetch stats data when switching to Stats View
+  fetchStatsData();
 });

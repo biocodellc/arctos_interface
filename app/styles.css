@@ -281,3 +281,32 @@ html, body {
   display: none; /* Hide the close button */
 }
 
+/* Increase the size of the chart container for better readability */
+.chart-container {
+  max-width: 400px; /* Increase this value for larger charts */
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Basic table styling */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.table-striped tbody tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}

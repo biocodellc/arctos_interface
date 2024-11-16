@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   
   <!-- jQuery UI CSS -->
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -62,14 +64,24 @@
         <div class="toggle-bar d-flex align-items-center justify-content-between mb-3 p-2 bg-light rounded">
           <span id="resultsHeading" class="text-muted">Showing Results</span>
           <div class="btn-group ms-auto" role="group" style="margin-left: auto;">
-            <button id="showTable" class="btn btn-custom-table">Table View</button>
-            <button id="showMap" class="btn btn-custom-map">Map View</button>
+            <button id="showTable" class="btn btn-custom-table">Table</button>
+            <button id="showMap" class="btn btn-custom-map">Map</button>
+            <button id="showStats" class="btn btn-custom-map">Stats</button>
+
           </div>
         </div>
 
         <!-- Container for map view -->
         <div id="mapContainer" style="display: none;">
           <div id="map"></div>
+        </div>
+
+        <!-- Container for stats view -->
+        <div id="statsContainer">
+          <div id="datasourceTable"></div>
+          <div id="mappedTraitsTable"></div>
+          <div id="familyTable"></div>
+          <div id="basisOfRecordTable"></div>
         </div>
 
         <!-- Container for table view -->
