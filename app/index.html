@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phenobase Search</title>
+  <title>Arctos Search</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
@@ -17,18 +17,15 @@
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  
   <!-- jQuery UI CSS -->
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-  
+
 </head>
 <body>
   <div class="container-fluid">
     <div class="row">
       <div class="col-xs-3 sidebar">
-        <img src='banner.png' width=100%>
-
-
+		<h1>Arctos Index</h1>
         <!-- Faceted Search Section -->
         <div class="facet-title">Search by Scientific Name</div>
         <div class="search-container">
@@ -37,26 +34,27 @@
         </div>
 
         <!-- Dynamic facets will be populated here -->
-        <div class="facet-title">DataSource</div>
-        <div id="dataSourceFacets"></div>
+        <div class="facet-title">Country</div>
+        <div id="countryFacets"></div>
 
-        <div class="facet-title">Traits</div>
-        <div id="traitFacets"></div>
+        <div class="facet-title">State/Province</div>
+        <div id="stateProvFacets"></div>
 
         <div class="facet-title">Family</div>
         <div id="familyFacets"></div>
 
-        <div class="facet-title">Basis of Record</div>
-        <div id="basisOfRecordFacets"></div>
+        <div class="facet-title">Genus</div>
+        <div id="genusFacets"></div>
 
         <!-- Container for displaying selected facets -->
         <div id="selectedFacets" class="selected-facets-container"></div>
 
         <button id="downloadButton" class="btn btn-primary">Download Data</button>
 
-        <p class="text-muted"> 
-          All records are retrieved from the <a href='https://github.com/biocodellc/biscicol-server/' target=_blank>Phenobase API</a>.  
-          Visit the <a href='https://phenobase.org/' target=_blank>Phenobase website</a> for more information.</p>
+        <p class="text-muted">
+          All records are retrieved from the <a href='https://github.com/biocodellc/biscicol-server/' target=_blank>Arctos API</a>.
+          Visit the <a href='https://arctos.database.museum/' target=_blank>Arctos website</a> for more information.
+        </p>
       </div>
 
       <div class="col-xs-9 col-xs-offset-3 main">
@@ -67,7 +65,6 @@
             <button id="showTable" class="btn btn-custom-table">Table</button>
             <button id="showMap" class="btn btn-custom-map">Map</button>
             <button id="showStats" class="btn btn-custom-map">Stats</button>
-
           </div>
         </div>
 
@@ -78,10 +75,10 @@
 
         <!-- Container for stats view -->
         <div id="statsContainer">
-          <div id="datasourceTable"></div>
-          <div id="mappedTraitsTable"></div>
+          <div id="countryTable"></div>
+          <div id="stateProvTable"></div>
           <div id="familyTable"></div>
-          <div id="basisOfRecordTable"></div>
+          <div id="genusTable"></div>
         </div>
 
         <!-- Container for table view -->
@@ -89,15 +86,19 @@
           <table id="resultsTable" class="table">
             <thead>
               <tr>
-                <th scope="col">DataSource</th>
+                <th scope="col">Cataloged Item Type</th>
+                <th scope="col">Catalog Number</th>
+                <th scope="col">Institution Acronym</th>
+                <th scope="col">Collection Code</th>
+                <th scope="col">Country</th>
+                <th scope="col">State/Province</th>
                 <th scope="col">Scientific Name</th>
-                <th scope="col">Rank</th>
-                <th scope="col">Year</th>
-                <th scope="col">Day Of Year</th>
                 <th scope="col">Family</th>
-                <th scope="col">Trait</th>
-                <th scope="col">Prediction Class</th>
-                <th scope="col">Image</th>
+                <th scope="col">Genus</th>
+                <th scope="col">Species</th>
+                <th scope="col">Year</th>
+                <th scope="col">Latitude</th>
+                <th scope="col">Longitude</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -118,11 +119,8 @@
     <div class="robot-icon">
       <i class="fas fa-robot"></i>
     </div>
-    <p>This service will initiate a download of up to 100,000 records from the Phenobase database.</p>
-    <p>Citation and data use policy is included with the download bundle.
-    <p>Counts from downloaded data use exact-match scientific-names whereas the queries on the interface use full-text 
-          matching which results in possibly fewer downloaded results than the UI query syntax may show.
-    </p>
+    <p>This service will initiate a download of up to 100,000 records from the Arctos database.</p>
+    <p>Citation and data use policy is included with the download bundle.</p>
     <p>Download may take up to 1 minute to commence.</p>
   </div>
 
@@ -144,8 +142,8 @@
       fetchResults(); // Assuming this function exists and fetches data
 
       $("#downloadButton").click(function (event) {
-        event.preventDefault(); // Prevent the default action initially
-        updateDownloadLink(); // Update the download link
+        event.preventDefault();
+        updateDownloadLink();
         console.log(downloadLink);
 
         if (!downloadLink) {
@@ -161,23 +159,17 @@
           modal: true,
           buttons: {
             "Download": function () {
-              // Close the dialog
               $(this).dialog("close");
-
-              // Stop the spinner
               $("#spinner").hide();
-
-              // Initiate the download
-              window.location.href = downloadLink; // Replace with your download link variable
+              window.location.href = downloadLink;
             },
             Cancel: function () {
-              // Close the dialog and stop spinner if canceled
               $(this).dialog("close");
               $("#spinner").hide();
-            },
+            }
           },
           open: function () {
-            $(".ui-dialog-titlebar-close").hide(); // Optionally hide the close button to force user interaction
+            $(".ui-dialog-titlebar-close").hide();
           }
         });
       });
@@ -185,3 +177,4 @@
   </script>
 </body>
 </html>
+

@@ -127,8 +127,11 @@
 .facet-link-container {
   display: flex;
   align-items: center;
+  padding: 0 0; /* Reduce padding */
+  margin: 0 0;  /* Reduce margin */
+  line-height: 0.8; /* Adjust line height */
+  font-size: 14px; /* Optional: Slightly smaller text */
 }
-
 .remove-facet {
   margin-left: 5px;
   color: #d9534f;
