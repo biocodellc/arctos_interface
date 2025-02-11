@@ -3,8 +3,8 @@ let currentPage = 1;
 const pageSize = 15; // Number of results per page
 
 // API URL with placeholders for pagination
-var apiUrl = `https://biscicol.org/phenobase/api/v1/query//phenobase/_search?size=${pageSize}&from=0`;
-var queryStringRootURL = "https://biscicol.org/phenobase/api/v1/download/_search?q="; // Root URL for download link
+var apiUrl = `https://biscicol.org/arctos/api/v1/query/arctos/_search?size=${pageSize}&from=0`;
+var queryStringRootURL = "https://biscicol.org/arctos/api/v1/download/_search?q="; // Root URL for download link
 var downloadLink = ""; // Holds the constructed download link
 
 // Initialize the Leaflet map
@@ -481,7 +481,7 @@ function updateDownloadLink() {
   // Enable the download button and update the href attribute
   $("#downloadButton")
     .attr("href", downloadLink)
-    .attr("download", "phenobase_data.json")
+    .attr("download", "arctos_data.json")
     .prop("disabled", false);
 }
 
@@ -701,7 +701,7 @@ function renderTables(aggregations) {
 
 // Function to fetch stats data from the API using POST request
 function fetchStatsData() {
-  const statsApiUrl = "https://biscicol.org/phenobase/api/v1/query//phenobase/_search?size=15&from=0";
+  const statsApiUrl = "https://biscicol.org/arctos/api/v1/query/arctos/_search?size=15&from=0";
 
   $.ajax({
     url: statsApiUrl,
