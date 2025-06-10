@@ -318,6 +318,7 @@ function renderSelectedFacets() {
 
 // Function to construct the download link based on the current query
 function updateDownloadLink() {
+	buildRequestData()
 	// Convert the JSON query to a Lucene query string
 	const luceneQuery = convertJsonToLucene(requestData.query);
 
@@ -693,15 +694,15 @@ function performSearchWithScientificName(name) {
 }
 
 $("#searchButton").click(function (event) {
-	event.preventDefault();
-	const searchTerm = $("#scientificNameSearch").val().trim();
+  event.preventDefault();
+  const searchTerm = $("#scientificNameSearch").val().trim();
 
-	if (searchTerm === "") {
-		alert("Please enter a scientific name.");
-		return;
-	}
+  if (searchTerm === "") {
+    alert("Please enter a scientific name.");
+    return;
+  }
 
-	performSearchWithScientificName(searchTerm);
+  performSearchWithScientificName(searchTerm); // Will call fetchResults()
 });
 
 
