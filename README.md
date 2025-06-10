@@ -6,7 +6,7 @@
 A lightweight interface for visualizing arctos.  This interface is written
 in angularJS v1.7 and bootstrap v3.x and calls ElasticSearch via [biscicol-server](https://github.com/biscicol/biscicol-server)
 
-The master branch of this repository is hosted on netlify and currently running at: https://arctos_interface.netlify.app/
+The master branch of this repository is hosted on netlify and currently running at: https://arctosinterface.netlify.app/
 
 # first time installation steps
 ```
