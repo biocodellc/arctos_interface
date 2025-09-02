@@ -47,7 +47,10 @@ var requestData = {
 		},
 		genus_3: {
 			terms: { field: "genus", size: 50 }
-		}
+		},
+		type_4: {
+			terms: { field: "type", size: 50 }
+			}
 	},
 	query: {
 		bool: {
@@ -208,11 +211,13 @@ function renderResults(results) {
 // Function to render dynamic facets
 function renderFacets(aggregations) {
 
+	$("#typeFacets").empty();
 	$("#countryFacets").empty();
 	$("#stateProvFacets").empty();
 	$("#familyFacets").empty();
 	$("#genusFacets").empty();
 
+	renderFacetLinks(aggregations.type_4, "#typeFacets", "type");
 	// Populate Country facet
 	renderFacetLinks(aggregations.country_0, "#countryFacets", "country");
 
@@ -225,6 +230,7 @@ function renderFacets(aggregations) {
 	// Populate Genus facet
 	renderFacetLinks(aggregations.genus_3, "#genusFacets", "genus");
 
+	applyFacetToggle('typeFacets');
 	applyFacetToggle('countryFacets');
 	applyFacetToggle('stateProvFacets');
 	applyFacetToggle('familyFacets');
